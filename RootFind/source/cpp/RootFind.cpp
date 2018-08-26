@@ -90,7 +90,9 @@ double findRoot_bisection(double (*function)(double), double boundLower, double 
         return 0;
     }
    
+    cout << "iter: " << iterCurrent << endl;
     return x1;
+    
 }
 
 double findRoot_secant(double (*function)(double), double guessInitial1, double guessInitial2, double errorTolerance, int iterMax){
@@ -163,8 +165,9 @@ double findRoot_secant(double (*function)(double), double guessInitial1, double 
         return 0;
     }
     
-    
+    cout << "iter: " << iterCurrent << endl;
     return x2;
+    
 }
 
 double findRoot_regulafalsi(double (*function)(double), double boundLower, double boundUpper, double errorTolerance, int iterMax){
@@ -213,7 +216,7 @@ double findRoot_regulafalsi(double (*function)(double), double boundLower, doubl
     double f0 = function(x0);                               //f0, function evaluated at current lower bound
     double x2 = boundUpper;                                 //x2, current upper bound, initialized to user-defined upper bound
     double f2 = function(x2);                               //f2, function evaluated at current lower bound
-    double x1 = x0 - ((f0*(x2-x0))/(f2-f0));                //x1, false position point calculated based on x0 and x2
+    double x1 = x2 - ((f2*(x2-x0))/(f2-f0));                //x1, false position point calculated based on x0 and x2
     double f1 = function(x1);                               //f1, function evaluated at false position point
     
     double errorCurrent = 10;
@@ -223,7 +226,7 @@ double findRoot_regulafalsi(double (*function)(double), double boundLower, doubl
     {
         f0 = function(x0);                                  //re-evaluate f0 based on new x0
         f2 = function(x2);                                  //re-evaluate f2 based on new x2
-        x1 = x0 - ((f0*(x2-x0))/(f2-f0));                   //re-calculate x1 based on new x0, f0, x2, f2
+        x1 = x2 - ((f2*(x2-x0))/(f2-f0));                   //re-calculate x1 based on new x0, f0, x2, f2
         f1 = function(x1);                                  //re-evaluate f1 based on new x1
         
         if(f0 * f1 > 0){                                    //Is the sign of f0 and f1 the same?
@@ -237,7 +240,7 @@ double findRoot_regulafalsi(double (*function)(double), double boundLower, doubl
         
     }
     
-        // Error handling for if max number of iterations  
+    // Error handling for if max number of iterations  
     try{
         if(iterCurrent >= iterMax){
             throw 10000;
@@ -253,45 +256,136 @@ double findRoot_regulafalsi(double (*function)(double), double boundLower, doubl
         return 0;
     }
     
+    cout << "iter: " << iterCurrent << endl;
     return x1;   
+    
 }
 
 double findRoot_NewtonRaphson(double (*function)(double), double (*functionDerivative)(double), double guessInitial, double errorTolerance, int iterMax){
-    double x0 = guessInitial;
-    double f0 = function(x0);
-    double fp0 = functionDerivative(x0);
+    /*
+     INPUTS:
+     *  function: The function that the user would like to find the root (0) of
+     *  functionDerivative: The 1st derivative of the function that the user would like to find the root (0) of
+     *  guessInitial: The initial guess for where the root might be
+     *  errorTolerance: The amount by which the function evaluated at the best estimate of the root is allowed to differ from 0 by; f(x1); how far from 0 can f(x1) be
+     *  iterMax: Maximum number of iterations for the Newton-Raphson algorithm before it stops
+     
+     OUTPUTS:
+     *  x0: The approximated root of the function
+     
+     SOURCES:
+     *  https://en.wikipedia.org/wiki/Newton%27s_method
+     *  TAMU AERO 220 Summer 2016 Lecture Notes
+     *  Numerical Methods in Engineering with MATLAB by Jaan Kiusalaas (3rd ed.)
+     */
+    
+    double x0 = guessInitial;                                               //x0, current guess of the function root, initialized with user-inputed initial guess of root
+    double f0 = function(x0);                                               //f0, function evaluated at current guess of root
+    double fp0 = functionDerivative(x0);                                    //fp0, function 1st derivative evaluated at current guess of root
+    
+    // Error handling for entering an initial guess that causes fp0 to equal 0
+    try{
+        if(fp0 == 0){
+            throw 10000;
+        }
+        
+    }
+    catch(int err10000){
+        cout << "Error: " << "Function first derivative evaluated at initial guess equal to 0. Invalid input. Disregard return value." << endl;
+        return 0;
+    }
     
     double errorCurrent = f0;
     
     int iterCurrent = 0;
     
     while(abs(errorCurrent) > errorTolerance && iterCurrent <= iterMax){
-        f0 = function(x0);
-        fp0 = functionDerivative(x0);
-        x0 = x0 - f0/fp0;
+        f0 = function(x0);                                                  //re-evaluate f0 based on new x0
+        fp0 = functionDerivative(x0);                                       //re-evaluate fp0 based on new x0
+        x0 = x0 - f0/fp0;                                                   //re-calculate x0 based on current x0, f0, fp0
         errorCurrent = f0;
         iterCurrent++;
     }
+    
+    // Error handling for if max number of iterations  
+    try{
+        if(iterCurrent >= iterMax){
+            throw 10001;
+        }
+        
+    }
+    catch(int err10001){
+        cout << "Error: " << "Maximum iteration limit exceeded" << endl;
+        cout << "Disregard return value." << endl;
+        cout << "Possible sources of error: " << endl;
+        cout << "Inappropriate initial guess; Newton-Raphson algorithm can diverge." << endl;
+        cout << "Function derivative may be incorrect." << endl;
+        cout << "Function derivative may have been equal to 0 (division by 0) during an iteration." << endl;
+        cout << "Not enough iterations were alloted." << endl;
+        return 0;
+    }
+    
+    cout << "iter: " << iterCurrent << endl;
     return x0;
+    
 }
 
 double findRoot_Halley(double (*function)(double), double (*functionDerivative1)(double), double (*functionDerivative2)(double), double guessInitial, double errorTolerance, int iterMax){
-    double x0 = guessInitial;
-    double f0 = function(x0);
-    double fp0 = functionDerivative1(x0);
-    double fpp0 = functionDerivative2(x0);
+     /*
+     INPUTS:
+     *  function: The function that the user would like to find the root (0) of
+     *  functionDerivative1: The 1st derivative of the function that the user would like to find the root (0) of
+     *  functionDerivative2: The 2nd derivative of the function that the user would like to find the root (0) of
+     *  guessInitial: The initial guess for where the root might be
+     *  errorTolerance: The amount by which the function evaluated at the best estimate of the root is allowed to differ from 0 by; f(x1); how far from 0 can f(x1) be
+     *  iterMax: Maximum number of iterations for the Newton-Raphson algorithm before it stops
+     
+     OUTPUTS:
+     *  x0: The approximated root of the function
+     
+     SOURCES:
+     *  https://en.wikipedia.org/wiki/Newton%27s_method
+     *  TAMU AERO 220 Summer 2016 Lecture Notes
+     *  Numerical Methods in Engineering with MATLAB by Jaan Kiusalaas (3rd ed.)
+     */
+    
+    double x0 = guessInitial;                                               //x0, current guess of the function root, initialized with user-inputed initial guess of root
+    double f0 = function(x0);                                               //f0, function evaluated at current guess of root
+    double fp0 = functionDerivative1(x0);                                   //fp0, function 1st derivative evaluated at current guess of root
+    double fpp0 = functionDerivative2(x0);                                  //fpp0, function 2nd derivative evaluated at current guess of root
     
     double errorCurrent = f0;
     
     int iterCurrent = 0;
     
     while(abs(errorCurrent) > errorTolerance && iterCurrent <= iterMax){
-        f0 = function(x0);
-        fp0 = functionDerivative1(x0);
-        fpp0 = functionDerivative2(x0);
-        x0 = x0 - (2*f0*fp0)/(2*fp0*fp0-f0*fpp0);
+        f0 = function(x0);                                                  //re-evaluate f0 based on new x0
+        fp0 = functionDerivative1(x0);                                      //re-evaluate fp0 based on new x0
+        fpp0 = functionDerivative2(x0);                                     //re-evaluate fpp0 based on new x0
+        x0 = x0 - (2*f0*fp0)/(2*fp0*fp0-f0*fpp0);                           //re-calculate x0 based on current x0, f0, fp0
         errorCurrent = f0;
         iterCurrent++;
     }
+    
+    // Error handling for if max number of iterations  
+    try{
+        if(iterCurrent >= iterMax){
+            throw 10001;
+        }
+        
+    }
+    catch(int err10001){
+        cout << "Error: " << "Maximum iteration limit exceeded" << endl;
+        cout << "Disregard return value." << endl;
+        cout << "Possible sources of error: " << endl;
+        cout << "Inappropriate initial guess; Halley algorithm can diverge." << endl;
+        cout << "Function 1st or 2nd derivative may be incorrect." << endl;
+        cout << "Denominator may have been equal to 0 (division by 0) during an iteration." << endl;
+        cout << "Not enough iterations were alloted." << endl;
+        return 0;
+    }
+    
+    cout << "iter: " << iterCurrent << endl;
     return x0;
+    
 }
