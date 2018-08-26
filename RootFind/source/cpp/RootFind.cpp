@@ -100,7 +100,7 @@ double findRoot_secant(double (*function)(double), double guessInitial1, double 
      *  guessInitial1: First initial guess near the root. DOES NOT have to bracket the root. DOES NOT have to be less than guessInitial2
      *  guessInitial1: Second initial guess near the root. DOES NOT have to bracket the root. DOES NOT have to be greater than guessInitial1
      *  errorTolerance: The amount by which the function evaluated at the best estimate of the root is allowed to differ from 0 by; f(x1); how far from 0 can f(x1) be
-     *  iterMax: Maximum number of iterations for the bisection algorithm before it stops
+     *  iterMax: Maximum number of iterations for the secant algorithm before it stops
      
      OUTPUTS:
      *  x2: The approximated root of the function
@@ -167,30 +167,90 @@ double findRoot_secant(double (*function)(double), double guessInitial1, double 
     return x2;
 }
 
-double findRoot_regulafalsi(double (*function)(double), double boundLower, double boundUpper, double errorTolerance){
-    double x0 = boundLower;
-    double f0 = function(x0);
-    double x2 = boundUpper;
-    double f2 = function(x2);
-    double x1 = x0 - ((f0*(x2-x0))/(f2-f0));
-    double f1 = function(x1);
+double findRoot_regulafalsi(double (*function)(double), double boundLower, double boundUpper, double errorTolerance, int iterMax){
+    /*
+     INPUTS:
+     *  function: The function that the user would like to find the root (0) of
+     *  boundLower: The lower bound of the domain the root is known to exist within
+     *  boundUpper: The upper bound of the domain the root is known to exist within
+     *  errorTolerance: The amount by which the function evaluated at the best estimate of the root is allowed to differ from 0 by; f(x1); how far from 0 can f(x1) be
+     *  iterMax: Maximum number of iterations for the regula falsi algorithm before it stops
+     
+     OUTPUTS:
+     *  x1: The approximated root of the function
+     
+     SOURCES:
+     *  https://en.wikipedia.org/wiki/False_position_method
+     *  TAMU AERO 220 Summer 2016 Lecture Notes
+     *  Numerical Methods in Engineering with MATLAB by Jaan Kiusalaas (3rd ed.)
+     */
+    
+    // Error handling for entering a lower bound and upper bound that are the same
+    try{
+        if(boundLower == boundUpper){
+            throw 10001;
+        }
+        
+    }
+    catch(int err10001){
+        cout << "Error: " << "Input lower bound equal to input upper bound. Invalid input. Disregard return value." << endl;
+        return 0;
+    }
+    
+    // Error handling for entering a lower bound greater than the upper bound.
+    try{
+        if(boundLower > boundUpper){
+            throw 10002;
+        }
+        
+    }
+    catch(int err10002){
+        cout << "Warning: " << "Input lower bound greater than input upper bound. Evaluate reasonability of return value." << endl;
+        
+    }
+    
+    double x0 = boundLower;                                 //x0, current lower bound, initialized to user-defined lower bound
+    double f0 = function(x0);                               //f0, function evaluated at current lower bound
+    double x2 = boundUpper;                                 //x2, current upper bound, initialized to user-defined upper bound
+    double f2 = function(x2);                               //f2, function evaluated at current lower bound
+    double x1 = x0 - ((f0*(x2-x0))/(f2-f0));                //x1, false position point calculated based on x0 and x2
+    double f1 = function(x1);                               //f1, function evaluated at false position point
     
     double errorCurrent = 10;
+    int iterCurrent = 0;
     
-    while(abs(errorCurrent) > errorTolerance)
+    while(abs(errorCurrent) > errorTolerance && iterCurrent <= iterMax)
     {
-        f0 = function(x0);
-        f2 = function(x2);
-        x1 = x0 - ((f0*(x2-x0))/(f2-f0));
-        f1 = function(x1);
+        f0 = function(x0);                                  //re-evaluate f0 based on new x0
+        f2 = function(x2);                                  //re-evaluate f2 based on new x2
+        x1 = x0 - ((f0*(x2-x0))/(f2-f0));                   //re-calculate x1 based on new x0, f0, x2, f2
+        f1 = function(x1);                                  //re-evaluate f1 based on new x1
         
-        if(f0 * f1 > 0){
-            x0 = x1;
+        if(f0 * f1 > 0){                                    //Is the sign of f0 and f1 the same?
+            x0 = x1;                                        //If so, the lower bound can be moved up to x1, so set x0 = x1
         } else{
-            x2 = x1;
+            x2 = x1;                                        //Otherwise, f1 and f2 must be of the same size, the upper bound can be moved down to x1, set x1 = x2
         }
         
         errorCurrent = f1;
+        iterCurrent++;
+        
+    }
+    
+        // Error handling for if max number of iterations  
+    try{
+        if(iterCurrent >= iterMax){
+            throw 10000;
+        }
+        
+    }
+    catch(int err10000){
+        cout << "Error: " << "Maximum iteration limit exceeded" << endl;
+        cout << "Disregard return value." << endl;
+        cout << "Possible sources of error: " << endl;
+        cout << "Root is not bracketed. Root must be bracketed for regula-falsi." << endl;
+        cout << "Not enough iterations were alloted." << endl;
+        return 0;
     }
     
     return x1;   
