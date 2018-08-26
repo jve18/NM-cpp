@@ -83,6 +83,10 @@ double findRoot_bisection(double (*function)(double), double boundLower, double 
     }
     catch(int err10000){
         cout << "Error: " << "Maximum iteration limit exceeded" << endl;
+        cout << "Disregard return value." << endl;
+        cout << "Possible sources of error: " << endl;
+        cout << "Root is not bracketed. Root must be bracketed for bisection." << endl;
+        cout << "Not enough iterations were alloted. Bisection is one of the slower root finding techniques. A high number of iterations may be necessary ~ log2((boundUpper-boundLower)/errorTolerance)." << endl;
         return 0;
     }
    
@@ -90,28 +94,76 @@ double findRoot_bisection(double (*function)(double), double boundLower, double 
 }
 
 double findRoot_secant(double (*function)(double), double guessInitial1, double guessInitial2, double errorTolerance, int iterMax){
-    double x0 = guessInitial1;
-    double f0 = function(x0);
-    double x1 = guessInitial2;
-    double f1 = function(x1);
-    double x2 = (x0*f1 - x1*f0)/(f1 - f0);
-    double f2 = function(x2);
+     /*
+     INPUTS:
+     *  function: The function that the user would like to find the root (0) of
+     *  guessInitial1: First initial guess near the root. DOES NOT have to bracket the root. DOES NOT have to be less than guessInitial2
+     *  guessInitial1: Second initial guess near the root. DOES NOT have to bracket the root. DOES NOT have to be greater than guessInitial1
+     *  errorTolerance: The amount by which the function evaluated at the best estimate of the root is allowed to differ from 0 by; f(x1); how far from 0 can f(x1) be
+     *  iterMax: Maximum number of iterations for the bisection algorithm before it stops
+     
+     OUTPUTS:
+     *  x2: The approximated root of the function
+     
+     SOURCES:
+     *  https://en.wikipedia.org/wiki/Secant_method
+     *  TAMU AERO 220 Summer 2016 Lecture Notes
+     *  Numerical Methods in Engineering with MATLAB by Jaan Kiusalaas (3rd ed.)
+     */
+    
+     // Error handling for entering a lower bound and upper bound that are the same
+    try{
+        if(guessInitial1 == guessInitial2){
+            throw 10001;
+        }
+        
+    }
+    catch(int err10001){
+        cout << "Error: " << "Input first initial guess equal to second initial guess. Invalid input. Disregard return value." << endl;
+        return 0;
+    }
+    
+    
+    double x0 = guessInitial1;                          //x0, current first guess, initialized to user-defined first guess
+    double f0 = function(x0);                           //f0, function evaluated at current first guess
+    double x1 = guessInitial2;                          //x1, current second guess, initialized to user-defined first guess
+    double f1 = function(x1);                           //f1, function evaluated at current second guess
+    double x2 = (x0*f1 - x1*f0)/(f1 - f0);              //x1, current third guess (will replace second guess, x2 -> x1, after the second guess replaces the first guess, x1 -> x0
+    double f2 = function(x2);                           //x2, function evaluated at third guess
     
     double errorCurrent = 10;
     
     int iterCurrent = 0;
     
     while(abs(errorCurrent) > errorTolerance && iterCurrent <= iterMax){
-        f0 = function(x0);
-        f1 = function(x1);
-        x2 = (x0*f1 - x1*f0)/(f1 - f0);
-        f2 = function(x2);
-        x0 = x1;
-        x1 = x2;
+        f0 = function(x0);                              //re-evaluate f0 based on new x0
+        f1 = function(x1);                              //re-evaluate f1 based on new x1
+        x2 = (x0*f1 - x1*f0)/(f1 - f0);                 //re-calculate x2 based on new x0, f0, x1, f1
+        f2 = function(x2);                              //re-evaluate f2 based on new x2
+        x0 = x1;                                        //set next "first" guess equal to current "second" guess
+        x1 = x2;                                        //set next "second" guess equal to current "third" guess
         errorCurrent = f2;
         iterCurrent++;
         
     }
+    
+    // Error handling for if max number of iterations  
+    try{
+        if(iterCurrent >= iterMax){
+            throw 10000;
+        }
+        
+    }
+    catch(int err10000){
+        cout << "Error: " << "Maximum iteration limit exceeded." << endl;
+        cout << "Disregard return value." << endl;                      
+        cout << "Possible sources of error: " << endl;
+        cout << "Trying converge function extrema; secant method may not converge on function extrema." << endl;
+        cout << "Inappropriate initial guesses; some initial guesses can cause secant method to DIVERGE." << endl;
+        return 0;
+    }
+    
+    
     return x2;
 }
 
