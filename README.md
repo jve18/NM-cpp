@@ -8,3 +8,5 @@ Current Tools:
     Regula-Falsi
     Newton-Raphson
     Halley
+  ODE Solving
+    RK4
