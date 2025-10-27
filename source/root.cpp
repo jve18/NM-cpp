@@ -1,31 +1,34 @@
 
-#include "RootFind.h"
+#include "root.h"
 #include <iostream>
 #include <complex>
 
 using namespace std;
 
-double findRoot_bisection(double (*function)(double), double boundLower, double boundUpper, double errorTolerance, int iterMax){
+double fzero_bisect(double (*func)(double), double bound_lower, double bound_upper, double err_tol, int iter_max){
     /*
-     INPUTS:
-     *  function: The function that the user would like to find the root (0) of
-     *  boundLower: The lower bound of the domain the root is known to exist within
-     *  boundUpper: The upper bound of the domain the root is known to exist within
-     *  errorTolerance: The amount by which the function evaluated at the best estimate of the root is allowed to differ from 0 by; f(x1); how far from 0 can f(x1) be
-     *  iterMax: Maximum number of iterations for the bisection algorithm before it stops
+
+    DESCRIPTION: Function finds the root/zero of a function using the root bisection method.
      
-     OUTPUTS:
-     *  x1: The approximated root of the function
-     
-     SOURCES:
-     *  https://en.wikipedia.org/wiki/Bisection_method
-     *  TAMU AERO 220 Summer 2016 Lecture Notes
-     *  Numerical Methods in Engineering with MATLAB by Jaan Kiusalaas (3rd ed.)
-     */
+    INPUTS:
+    *  func: The function that the user would like to find the root/zero of.
+    *  bound_lower: The lower bound of the domain the root/zero is known to exist within.
+    *  bound_upper: The upper bound of the domain the root/zero is known to exist within.
+    *  err_tol: The amount by which the function evaluated at the best estimate of the root/zero is allowed to differ from 0 by; f(x1); how far from 0 can f(x1) be.
+    *  iter_max: Maximum number of iterations for the bisection algorithm before it stops.
+    
+    OUTPUTS:
+    *  x1: The approximated root of the function
+    
+    SOURCES:
+    *  https://en.wikipedia.org/wiki/Bisection_method
+    *  TAMU AERO 220 Summer 2016 Lecture Notes
+    *  Numerical Methods in Engineering with MATLAB by Jaan Kiusalaas (3rd ed.)
+    */
 
     // Error handling for entering a lower bound and upper bound that are the same
     try{
-        if(boundLower == boundUpper){
+        if(bound_lower == bound_upper){
             throw 10001;
         }
         
@@ -37,7 +40,7 @@ double findRoot_bisection(double (*function)(double), double boundLower, double 
     
     // Error handling for entering a lower bound greater than the upper bound.
     try{
-        if(boundLower > boundUpper){
+        if(bound_lower > bound_upper){
             throw 10002;
         }
         
@@ -47,22 +50,22 @@ double findRoot_bisection(double (*function)(double), double boundLower, double 
         
     }
     
-    double x0 = boundLower;                     //x0, current lower bound, initialized to user-defined lower bound
-    double f0 = function(x0);                   //f0, function evaluated at current lower bound
-    double x2 = boundUpper;                     //x2, current upper bound, initialized to user-defined upper bound
-    double f2 = function(x2);                   //f2, function evaluated at current lower bound
-    double x1 = (x0 + x2)/2;                    //x1, midpoint based on current lower and upper bounds
-    double f1 = function(x1);                   //f1, function evaluated at current midpoint
+    double x0 = bound_lower;                     //x0, current lower bound, initialized to user-defined lower bound
+    double f0 = func(x0);                    //f0, function evaluated at current lower bound
+    double x2 = bound_upper;                     //x2, current upper bound, initialized to user-defined upper bound
+    double f2 = func(x2);                    //f2, function evaluated at current lower bound
+    double x1 = (x0 + x2)/2;                     //x1, midpoint based on current lower and upper bounds
+    double f1 = func(x1);                    //f1, function evaluated at current midpoint
     
-    double errorCurrent = f1;
-    double iterCurrent = 0;
+    double err = f1;
+    int iter = 0;
     
-    while(abs(errorCurrent) > errorTolerance && iterCurrent <= iterMax)
+    while(abs(err) > err_tol && iter <= iter_max)
     {
-        f0 = function(x0);                      //re-evaluate f0 based on new x0
-        f2 = function(x2);                      //re-evaluate f2 based on new x2
+        f0 = func(x0);                      //re-evaluate f0 based on new x0
+        f2 = func(x2);                      //re-evaluate f2 based on new x2
         x1 = (x0 + x2)/2;                       //re-calculate midpoint based on new x0, x2
-        f1 = function(x1);                      //re-evaluate f1 based on new midpoint, x1
+        f1 = func(x1);                      //re-evaluate f1 based on new midpoint, x1
         
         if(f0 * f1 > 0){                        //Is the sign of f0 and f1 the same?
             x0 = x1;                            //If so, the lower bound can be moved up to x1, so set x0 = x1
@@ -70,13 +73,13 @@ double findRoot_bisection(double (*function)(double), double boundLower, double 
             x2 = x1;                            //Otherwise, f1 and f2 must be of the same size, the upper bound can be moved down to x1, set x1 = x2
         }
         
-        errorCurrent = f1; 
-        iterCurrent++;
+        err = f1;                               //set error as function evaluated at current estimate of root
+        iter++;                                 //increment iteration
     }
     
     // Error handling for if max number of iterations  
     try{
-        if(iterCurrent >= iterMax){
+        if(iter >= iter_max){
             throw 10000;
         }
         
@@ -90,7 +93,7 @@ double findRoot_bisection(double (*function)(double), double boundLower, double 
         return 0;
     }
    
-    cout << "iter: " << iterCurrent << endl;
+    cout << "iter: " << iter << endl;
     return x1;
     
 }

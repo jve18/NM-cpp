@@ -1,11 +1,11 @@
-#include "ODESolve.h"
+#include "ode.h"
 #include <iostream>
 #include <complex>
 #include <vector>
 
 using namespace std;
 
-vector<double> ODESolve_RK4(double (*dy)(double, double), double x0, double y0, double xmax, double dx)
+vector<double> ode_RK4(double (*dy)(double, double), double x0, double y0, double xmax, double dx)
 {
     double y1 = y0;
     double x1 = x0;
