@@ -1,0 +1,5 @@
+NM-cpp: Numerical methods library for C++.
+
+Description: This is mostly a personal project to implement numerical methods into C++, but feel free to use and contribute. 
+    
+Tools: Root finding algorithms (bisection, secant method, regula-falsi, Newton-Raphson, cubic Halley). Solutions to ODEs (Runge Kutta 4th order).
