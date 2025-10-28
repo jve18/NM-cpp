@@ -2,6 +2,7 @@
 #include "root.h"
 #include <iostream>
 #include <complex>
+#include <cmath>
 
 // FUNCTIONS
 
@@ -34,7 +35,7 @@ double fzero_bisect(double (*func)(double), double bound_lower, double bound_upp
         
     }
     catch(int err10001){
-        std::cout << "Error: " << "Input lower bound equal to input upper bound. Invalid input. Disregard return value." << endl;
+        std::cout << "(root.cpp, fzero_bisect) Error: " << "Input lower bound equal to input upper bound. Invalid input. Disregard return value." << std::endl;
         return 0;
     }
     
@@ -46,35 +47,52 @@ double fzero_bisect(double (*func)(double), double bound_lower, double bound_upp
         
     }
     catch(int err10002){
-        std::cout << "Warning: " << "Input lower bound greater than input upper bound. Evaluate reasonability of return value." << endl;
+        std::cout << "(root.cpp, fzero_bisect) Warning: " << "Input lower bound greater than input upper bound. Evaluate reasonability of return value." << std::endl;
         
     }
     
-    double x0 = bound_lower;                     //x0, current lower bound, initialized to user-defined lower bound
-    double f0 = func(x0);                    //f0, function evaluated at current lower bound
-    double x2 = bound_upper;                     //x2, current upper bound, initialized to user-defined upper bound
-    double f2 = func(x2);                    //f2, function evaluated at current lower bound
-    double x1 = (x0 + x2)/2;                     //x1, midpoint based on current lower and upper bounds
-    double f1 = func(x1);                    //f1, function evaluated at current midpoint
+    // Initialize lower bound, function at lower bound.
+    double x0 = bound_lower;
+    double f0 = func(x0);
+
+    // Initialize upper bound, function at upper bound.
+    double x2 = bound_upper;
+    double f2 = func(x2);
+
+    // Initialize mid-point, function at mid-point.
+    double x1 = (x0 + x2)/2;
+    double f1 = func(x1);
     
+    // Initialize error and iteration count
     double err = f1;
     int iter = 0;
+
+    std::cout << std::abs(err) << std::endl;
     
-    while(abs(err) > err_tol && iter <= iter_max)
+    while(std::abs(err) > err_tol && iter <= iter_max)
     {
-        f0 = func(x0);                      //re-evaluate f0 based on new x0
-        f2 = func(x2);                      //re-evaluate f2 based on new x2
-        x1 = (x0 + x2)/2;                       //re-calculate midpoint based on new x0, x2
-        f1 = func(x1);                      //re-evaluate f1 based on new midpoint, x1
-        
-        if(f0 * f1 > 0){                        //Is the sign of f0 and f1 the same?
-            x0 = x1;                            //If so, the lower bound can be moved up to x1, so set x0 = x1
-        } else{
-            x2 = x1;                            //Otherwise, f1 and f2 must be of the same size, the upper bound can be moved down to x1, set x1 = x2
+        // Re-evaluate function at upper and lower bounds.
+        f0 = func(x0);
+        f2 = func(x2);
+
+        // Re-evaluate midpoint and function at mid-point.
+        x1 = (x0 + x2)/2; 
+        f1 = func(x1);
+
+        // Reset lower/upper bounds based on sign of f0, f2.
+        if(f0 * f1 > 0)
+        {
+            x0 = x1; 
+        } 
+        else
+        {
+            x2 = x1;
         }
         
+        // Compute error, increment iteration.
         err = f1;                               //set error as function evaluated at current estimate of root
         iter++;                                 //increment iteration
+
     }
     
     // Error handling for if max number of iterations  
@@ -85,25 +103,21 @@ double fzero_bisect(double (*func)(double), double bound_lower, double bound_upp
         
     }
     catch(int err10000){
-        std::cout << "Error: " << "Maximum iteration limit exceeded" << endl;
-        std::cout << "Disregard return value." << endl;
-        std::cout << "Possible sources of error: " << endl;
-        std::cout << "Root is not bracketed. Root must be bracketed for bisection." << endl;
-        std::cout << "Not enough iterations were alloted. Bisection is one of the slower root finding techniques. A high number of iterations may be necessary ~ log2((boundUpper-boundLower)/errorTolerance)." << endl;
+        std::cout << "(root.cpp, fzero_bisect) Error: " << "Maximum iteration limit exceeded. A high number of iterations may be necessary ~ log2((bound_upper-bound_lower)/err_tol)" << std::endl;
         return 0;
     }
    
-    std::cout << "iter: " << iter << endl;
+    std::cout << "(root.cpp, fzero_bisect) iter: " << iter << std::endl;
     return x1;
     
 }
 
-double findRoot_secant(double (*function)(double), double guessInitial1, double guessInitial2, double errorTolerance, int iterMax){
+double fzero_secant(double (*function)(double), double guess_init_1, double guess_init_2, double err_tol, int iter_max){
      /*
      INPUTS:
      *  function: The function that the user would like to find the root (0) of
-     *  guessInitial1: First initial guess near the root. DOES NOT have to bracket the root. DOES NOT have to be less than guessInitial2
-     *  guessInitial1: Second initial guess near the root. DOES NOT have to bracket the root. DOES NOT have to be greater than guessInitial1
+     *  guess_init_1: First initial guess near the root. DOES NOT have to bracket the root. DOES NOT have to be less than guess_init_2
+     *  guess_init_2: Second initial guess near the root. DOES NOT have to bracket the root. DOES NOT have to be greater than guess_init_1
      *  errorTolerance: The amount by which the function evaluated at the best estimate of the root is allowed to differ from 0 by; f(x1); how far from 0 can f(x1) be
      *  iterMax: Maximum number of iterations for the secant algorithm before it stops
      
@@ -118,57 +132,65 @@ double findRoot_secant(double (*function)(double), double guessInitial1, double 
     
      // Error handling for entering a lower bound and upper bound that are the same
     try{
-        if(guessInitial1 == guessInitial2){
+        if(guess_init_1 == guess_init_2){
             throw 10001;
         }
         
     }
     catch(int err10001){
-        std::cout << "Error: " << "Input first initial guess equal to second initial guess. Invalid input. Disregard return value." << endl;
+        std::cout << "(root.cpp, fzero_secant) Error: " << "Input first initial guess equal to second initial guess. Invalid input. Disregard return value." << std::endl;
         return 0;
     }
     
+    // Initialize first guess, function evaluated at first guess.
+    double x0 = guess_init_1;
+    double f0 = function(x0);
+
+    // Initialize second guess, function evaluated at second guess.
+    double x1 = guess_init_2;
+    double f1 = function(x1);
+
+    // Initialize third guess, function evualuated at third guess.
+    double x2 = (x0*f1 - x1*f0)/(f1 - f0); 
+    double f2 = function(x2);
+
+    // Initialize error and iteration count    
+    double err = 10.0;
+    int iter = 0;
     
-    double x0 = guessInitial1;                          //x0, current first guess, initialized to user-defined first guess
-    double f0 = function(x0);                           //f0, function evaluated at current first guess
-    double x1 = guessInitial2;                          //x1, current second guess, initialized to user-defined first guess
-    double f1 = function(x1);                           //f1, function evaluated at current second guess
-    double x2 = (x0*f1 - x1*f0)/(f1 - f0);              //x1, current third guess (will replace second guess, x2 -> x1, after the second guess replaces the first guess, x1 -> x0
-    double f2 = function(x2);                           //x2, function evaluated at third guess
-    
-    double errorCurrent = 10;
-    
-    int iterCurrent = 0;
-    
-    while(abs(errorCurrent) > errorTolerance && iterCurrent <= iterMax){
-        f0 = function(x0);                              //re-evaluate f0 based on new x0
-        f1 = function(x1);                              //re-evaluate f1 based on new x1
-        x2 = (x0*f1 - x1*f0)/(f1 - f0);                 //re-calculate x2 based on new x0, f0, x1, f1
-        f2 = function(x2);                              //re-evaluate f2 based on new x2
-        x0 = x1;                                        //set next "first" guess equal to current "second" guess
-        x1 = x2;                                        //set next "second" guess equal to current "third" guess
-        errorCurrent = f2;
-        iterCurrent++;
+    while(std::abs(err) > err_tol && iter <= iter_max){
+
+        // Evaluate function at new first/second guesses.
+        f0 = function(x0);
+        f1 = function(x1);
+
+        // Compute new third guess and evaluate function.
+        x2 = (x0*f1 - x1*f0)/(f1 - f0);
+        f2 = function(x2);
+
+        // Set new first/second guesses.
+        x0 = x1;
+        x1 = x2;
+
+        // Evaluate error, increment iteration.
+        err = f2;
+        iter++;
         
     }
     
     // Error handling for if max number of iterations  
     try{
-        if(iterCurrent >= iterMax){
+        if(iter >= iter_max){
             throw 10000;
         }
         
     }
     catch(int err10000){
-        std::cout << "Error: " << "Maximum iteration limit exceeded." << endl;
-        std::cout << "Disregard return value." << endl;                      
-        std::cout << "Possible sources of error: " << endl;
-        std::cout << "Trying converge function extrema; secant method may not converge on function extrema." << endl;
-        std::cout << "Inappropriate initial guesses; some initial guesses can cause secant method to DIVERGE." << endl;
+        std::cout << "(root.cpp, fzero_secant) Error: " << "Maximum iteration limit exceeded." << std::endl;
         return 0;
     }
     
-    std::cout << "iter: " << iterCurrent << endl;
+    std::cout << "(root.cpp, fzero_secant) iter: " << iter << std::endl;
     return x2;
     
 }
@@ -199,7 +221,7 @@ double findRoot_regulafalsi(double (*function)(double), double boundLower, doubl
         
     }
     catch(int err10001){
-        std::cout << "Error: " << "Input lower bound equal to input upper bound. Invalid input. Disregard return value." << endl;
+        std::cout << "Error: " << "Input lower bound equal to input upper bound. Invalid input. Disregard return value." << std::endl;
         return 0;
     }
     
@@ -211,7 +233,7 @@ double findRoot_regulafalsi(double (*function)(double), double boundLower, doubl
         
     }
     catch(int err10002){
-        std::cout << "Warning: " << "Input lower bound greater than input upper bound. Evaluate reasonability of return value." << endl;
+        std::cout << "Warning: " << "Input lower bound greater than input upper bound. Evaluate reasonability of return value." << std::endl;
         
     }
     
@@ -251,15 +273,15 @@ double findRoot_regulafalsi(double (*function)(double), double boundLower, doubl
         
     }
     catch(int err10000){
-        std::cout << "Error: " << "Maximum iteration limit exceeded" << endl;
-        std::cout << "Disregard return value." << endl;
-        std::cout << "Possible sources of error: " << endl;
-        std::cout << "Root is not bracketed. Root must be bracketed for regula-falsi." << endl;
-        std::cout << "Not enough iterations were alloted." << endl;
+        std::cout << "Error: " << "Maximum iteration limit exceeded" << std::endl;
+        std::cout << "Disregard return value." << std::endl;
+        std::cout << "Possible sources of error: " << std::endl;
+        std::cout << "Root is not bracketed. Root must be bracketed for regula-falsi." << std::endl;
+        std::cout << "Not enough iterations were alloted." << std::endl;
         return 0;
     }
     
-    std::cout << "iter: " << iterCurrent << endl;
+    std::cout << "iter: " << iterCurrent << std::endl;
     return x1;   
     
 }
@@ -294,7 +316,7 @@ double findRoot_NewtonRaphson(double (*function)(double), double (*functionDeriv
         
     }
     catch(int err10000){
-        std::cout << "Error: " << "Function first derivative evaluated at initial guess equal to 0. Invalid input. Disregard return value." << endl;
+        std::cout << "Error: " << "Function first derivative evaluated at initial guess equal to 0. Invalid input. Disregard return value." << std::endl;
         return 0;
     }
     
@@ -318,17 +340,17 @@ double findRoot_NewtonRaphson(double (*function)(double), double (*functionDeriv
         
     }
     catch(int err10001){
-        std::cout << "Error: " << "Maximum iteration limit exceeded" << endl;
-        std::cout << "Disregard return value." << endl;
-        std::cout << "Possible sources of error: " << endl;
-        std::cout << "Inappropriate initial guess; Newton-Raphson algorithm can diverge." << endl;
-        std::cout << "Function derivative may be incorrect." << endl;
-        std::cout << "Function derivative may have been equal to 0 (division by 0) during an iteration." << endl;
-        std::cout << "Not enough iterations were alloted." << endl;
+        std::cout << "Error: " << "Maximum iteration limit exceeded" << std::endl;
+        std::cout << "Disregard return value." << std::endl;
+        std::cout << "Possible sources of error: " << std::endl;
+        std::cout << "Inappropriate initial guess; Newton-Raphson algorithm can diverge." << std::endl;
+        std::cout << "Function derivative may be incorrect." << std::endl;
+        std::cout << "Function derivative may have been equal to 0 (division by 0) during an iteration." << std::endl;
+        std::cout << "Not enough iterations were alloted." << std::endl;
         return 0;
     }
     
-    std::cout << "iter: " << iterCurrent << endl;
+    std::cout << "iter: " << iterCurrent << std::endl;
     return x0;
     
 }
@@ -378,17 +400,17 @@ double findRoot_Halley(double (*function)(double), double (*functionDerivative1)
         
     }
     catch(int err10001){
-        std::cout << "Error: " << "Maximum iteration limit exceeded" << endl;
-        std::cout << "Disregard return value." << endl;
-        std::cout << "Possible sources of error: " << endl;
-        std::cout << "Inappropriate initial guess; Halley algorithm can diverge." << endl;
-        std::cout << "Function 1st or 2nd derivative may be incorrect." << endl;
-        std::cout << "Denominator may have been equal to 0 (division by 0) during an iteration." << endl;
-        std::cout << "Not enough iterations were alloted." << endl;
+        std::cout << "Error: " << "Maximum iteration limit exceeded" << std::endl;
+        std::cout << "Disregard return value." << std::endl;
+        std::cout << "Possible sources of error: " << std::endl;
+        std::cout << "Inappropriate initial guess; Halley algorithm can diverge." << std::endl;
+        std::cout << "Function 1st or 2nd derivative may be incorrect." << std::endl;
+        std::cout << "Denominator may have been equal to 0 (division by 0) during an iteration." << std::endl;
+        std::cout << "Not enough iterations were alloted." << std::endl;
         return 0;
     }
     
-    std::cout << "iter: " << iterCurrent << endl;
+    std::cout << "iter: " << iterCurrent << std::endl;
     return x0;
     
 }
