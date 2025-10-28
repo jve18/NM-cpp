@@ -3,9 +3,8 @@
 #include <complex>
 #include <vector>
 
-using namespace std;
 
-vector<double> ode_RK4(double (*dy)(double, double), double x0, double y0, double xmax, double dx)
+std::vector<double> ode_RK4(double (*dy)(double, double), double x0, double y0, double xmax, double dx)
 {
     double y1 = y0;
     double x1 = x0;
@@ -14,8 +13,8 @@ vector<double> ode_RK4(double (*dy)(double, double), double x0, double y0, doubl
     double k3 = dx*dy(x1 + dx/2, y1 + k2/2);
     double k4 = dx*dy(x1 + dx, y1 + k3);
     
-    vector<double> vect_x1;
-    vector<double> vect_y1;
+    std::vector<double> vect_x1;
+    std::vector<double> vect_y1;
     
     int nIter = 0;
     

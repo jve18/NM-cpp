@@ -9,8 +9,8 @@ test_fzero_bisect: main.o root.o
 main.o: main.cpp
 	$(CPPC) $(CPPCFLAGS) main.cpp
 
-root.o: ../../source/root.cpp
-	$(CPPC) $(CPPCFLAGS) ../../source/root.cpp
+root.o: ../../../source/root.cpp
+	$(CPPC) $(CPPCFLAGS) ../../../source/root.cpp
 
 clean: rm -rf *o test_fzero_bisect
 
