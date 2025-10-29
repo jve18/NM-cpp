@@ -16,7 +16,7 @@ int main()
   int i_max = 10000; // Max number of iterations
   double x_root;
 
-  x_root = fzero_bisect(y, x_L, x_U, eps_y, i_max);
+  x_root = fzero_false_pos(y, x_L, x_U, eps_y, i_max);
 
   std::cout << x_root << std::endl;
 
