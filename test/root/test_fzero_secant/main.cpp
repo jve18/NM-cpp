@@ -10,13 +10,13 @@ double y(double x)
 int main()
 {
 
-  double x_L = -1.0; // Lower bound guess
-  double x_U = 0.0; // Upper boung guess
+  double x_1 = -1.0; // First guess
+  double x_2 = 0.0; // Second guess
   double eps_y = pow(10.0,-4.0); // Error tolerance
   int i_max = 10000; // Max number of iterations
   double x_root;
 
-  x_root = fzero_secant(y,x_L,x_U,eps_y,i_max);
+  x_root = fzero_secant(y, x_1, x_2, eps_y, i_max);
 
   std::cout << x_root << std::endl;
 
