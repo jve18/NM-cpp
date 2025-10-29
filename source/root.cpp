@@ -221,7 +221,7 @@ double fzero_false_pos(double (*function)(double), double bound_lower, double bo
         
     }
     catch(int err10001){
-        std::cout << "Error: " << "Input lower bound equal to input upper bound. Invalid input. Disregard return value." << std::endl;
+        std::cout << "(root.cpp, fzero_false_pos) Error: " << "Input lower bound equal to input upper bound. Invalid input. Disregard return value." << std::endl;
         return 0;
     }
     
@@ -233,7 +233,7 @@ double fzero_false_pos(double (*function)(double), double bound_lower, double bo
         
     }
     catch(int err10002){
-        std::cout << "Warning: " << "Input lower bound greater than input upper bound. Evaluate reasonability of return value." << std::endl;
+        std::cout << "(root.cpp, fzero_false_pos) Warning: " << "Input lower bound greater than input upper bound. Evaluate reasonability of return value." << std::endl;
         
     }
     
@@ -292,19 +292,19 @@ double fzero_false_pos(double (*function)(double), double bound_lower, double bo
         return 0;
     }
     
-    std::cout << "iter: " << iter << std::endl;
+    std::cout << "(root.cpp, fzero_false_pos) iter: " << iter << std::endl;
     return x1;   
     
 }
 
-double findRoot_NewtonRaphson(double (*function)(double), double (*functionDerivative)(double), double guessInitial, double errorTolerance, int iterMax){
+double fzero_NR(double (*func)(double), double (*func_deriv)(double), double guess_init, double err_tol, int iter_max){
     /*
      INPUTS:
-     *  function: The function that the user would like to find the root (0) of
+     *  func: The function that the user would like to find the root (0) of
      *  functionDerivative: The 1st derivative of the function that the user would like to find the root (0) of
-     *  guessInitial: The initial guess for where the root might be
-     *  errorTolerance: The amount by which the function evaluated at the best estimate of the root is allowed to differ from 0 by; f(x1); how far from 0 can f(x1) be
-     *  iterMax: Maximum number of iterations for the Newton-Raphson algorithm before it stops
+     *  guess_init: The initial guess for where the root might be
+     *  err_tol: The amount by which the function evaluated at the best estimate of the root is allowed to differ from 0 by; f(x1); how far from 0 can f(x1) be
+     *  iter_max: Maximum number of iterations for the Newton-Raphson algorithm before it stops
      
      OUTPUTS:
      *  x0: The approximated root of the function
@@ -315,11 +315,12 @@ double findRoot_NewtonRaphson(double (*function)(double), double (*functionDeriv
      *  Numerical Methods in Engineering with MATLAB by Jaan Kiusalaas (3rd ed.)
      */
     
-    double x0 = guessInitial;                                               //x0, current guess of the function root, initialized with user-inputed initial guess of root
-    double f0 = function(x0);                                               //f0, function evaluated at current guess of root
-    double fp0 = functionDerivative(x0);                                    //fp0, function 1st derivative evaluated at current guess of root
+    // Initialize guess, function at guess, function derivative at guess.
+    double x0 = guess_init;
+    double f0 = func(x0);
+    double fp0 = func_deriv(x0);
     
-    // Error handling for entering an initial guess that causes fp0 to equal 0
+    // Error handling for entering an initial guess that causes fp0 to equal 0.
     try{
         if(fp0 == 0){
             throw 10000;
@@ -327,41 +328,41 @@ double findRoot_NewtonRaphson(double (*function)(double), double (*functionDeriv
         
     }
     catch(int err10000){
-        std::cout << "Error: " << "Function first derivative evaluated at initial guess equal to 0. Invalid input. Disregard return value." << std::endl;
+        std::cout << "(root.cpp, fzero_NR) Error: " << "Function first derivative evaluated at initial guess equal to 0. Invalid input. Disregard return value." << std::endl;
         return 0;
     }
     
-    double errorCurrent = f0;
+    // Initialize error and iteration count.
+    double err = f0;
+    int iter = 0;
     
-    int iterCurrent = 0;
-    
-    while(abs(errorCurrent) > errorTolerance && iterCurrent <= iterMax){
-        f0 = function(x0);                                                  //re-evaluate f0 based on new x0
-        fp0 = functionDerivative(x0);                                       //re-evaluate fp0 based on new x0
-        x0 = x0 - f0/fp0;                                                   //re-calculate x0 based on current x0, f0, fp0
-        errorCurrent = f0;
-        iterCurrent++;
+    while(std::abs(err) > err_tol && iter <= iter_max)
+    {
+        // Evaluate function and function derivative at guess.
+        f0 = func(x0);
+        fp0 = func_deriv(x0);
+
+        // New guess.
+        x0 = x0 - f0/fp0;
+
+        // Evaluate error, increment iteration.
+        err = f0;
+        iter++;
     }
     
-    // Error handling for if max number of iterations  
+    // Error handling for if max number of iterations.
     try{
-        if(iterCurrent >= iterMax){
+        if(iter >= iter_max){
             throw 10001;
         }
         
     }
     catch(int err10001){
-        std::cout << "Error: " << "Maximum iteration limit exceeded" << std::endl;
-        std::cout << "Disregard return value." << std::endl;
-        std::cout << "Possible sources of error: " << std::endl;
-        std::cout << "Inappropriate initial guess; Newton-Raphson algorithm can diverge." << std::endl;
-        std::cout << "Function derivative may be incorrect." << std::endl;
-        std::cout << "Function derivative may have been equal to 0 (division by 0) during an iteration." << std::endl;
-        std::cout << "Not enough iterations were alloted." << std::endl;
+        std::cout << "(root.cpp, fzero_NR) Error: " << "Maximum iteration limit exceeded" << std::endl;
         return 0;
     }
     
-    std::cout << "iter: " << iterCurrent << std::endl;
+    std::cout << "(root.cpp, fzero_NR) iter: " << iter << std::endl;
     return x0;
     
 }
