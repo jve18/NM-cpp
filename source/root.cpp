@@ -195,14 +195,14 @@ double fzero_secant(double (*function)(double), double guess_init_1, double gues
     
 }
 
-double findRoot_regulafalsi(double (*function)(double), double boundLower, double boundUpper, double errorTolerance, int iterMax){
+double fzero_false_pos(double (*function)(double), double bound_lower, double bound_upper, double err_tol, int iter_max){
     /*
      INPUTS:
      *  function: The function that the user would like to find the root (0) of
-     *  boundLower: The lower bound of the domain the root is known to exist within
-     *  boundUpper: The upper bound of the domain the root is known to exist within
-     *  errorTolerance: The amount by which the function evaluated at the best estimate of the root is allowed to differ from 0 by; f(x1); how far from 0 can f(x1) be
-     *  iterMax: Maximum number of iterations for the regula falsi algorithm before it stops
+     *  bound_lower: The lower bound of the domain the root is known to exist within
+     *  bound_upper: The upper bound of the domain the root is known to exist within
+     *  err_tol: The amount by which the function evaluated at the best estimate of the root is allowed to differ from 0 by; f(x1); how far from 0 can f(x1) be
+     *  iter_max: Maximum number of iterations for the regula falsi algorithm before it stops
      
      OUTPUTS:
      *  x1: The approximated root of the function
@@ -215,7 +215,7 @@ double findRoot_regulafalsi(double (*function)(double), double boundLower, doubl
     
     // Error handling for entering a lower bound and upper bound that are the same
     try{
-        if(boundLower == boundUpper){
+        if(bound_lower == bound_upper){
             throw 10001;
         }
         
@@ -227,7 +227,7 @@ double findRoot_regulafalsi(double (*function)(double), double boundLower, doubl
     
     // Error handling for entering a lower bound greater than the upper bound.
     try{
-        if(boundLower > boundUpper){
+        if(bound_lower > bound_upper){
             throw 10002;
         }
         
@@ -237,51 +237,62 @@ double findRoot_regulafalsi(double (*function)(double), double boundLower, doubl
         
     }
     
-    double x0 = boundLower;                                 //x0, current lower bound, initialized to user-defined lower bound
-    double f0 = function(x0);                               //f0, function evaluated at current lower bound
-    double x2 = boundUpper;                                 //x2, current upper bound, initialized to user-defined upper bound
-    double f2 = function(x2);                               //f2, function evaluated at current lower bound
-    double x1 = x2 - ((f2*(x2-x0))/(f2-f0));                //x1, false position point calculated based on x0 and x2
-    double f1 = function(x1);                               //f1, function evaluated at false position point
+    // Initialize lower bound, function at lower bound.
+    double x0 = bound_lower;
+    double f0 = function(x0);
+
+    // Initialize upper bound, function at upper bound.
+    double x2 = bound_upper;
+    double f2 = function(x2);
+
+    // Initialize false position point, function at false position point.
+    double x1 = x2 - ((f2*(x2-x0))/(f2-f0));
+    double f1 = function(x1); 
     
-    double errorCurrent = 10;
-    int iterCurrent = 0;
+    // Initialize error and iteration count.
+    double err = 10;
+    int iter = 0;
     
-    while(abs(errorCurrent) > errorTolerance && iterCurrent <= iterMax)
+    while(std::abs(err) > err_tol && iter <= iter_max)
     {
-        f0 = function(x0);                                  //re-evaluate f0 based on new x0
-        f2 = function(x2);                                  //re-evaluate f2 based on new x2
-        x1 = x2 - ((f2*(x2-x0))/(f2-f0));                   //re-calculate x1 based on new x0, f0, x2, f2
-        f1 = function(x1);                                  //re-evaluate f1 based on new x1
         
-        if(f0 * f1 > 0){                                    //Is the sign of f0 and f1 the same?
-            x0 = x1;                                        //If so, the lower bound can be moved up to x1, so set x0 = x1
-        } else{
-            x2 = x1;                                        //Otherwise, f1 and f2 must be of the same size, the upper bound can be moved down to x1, set x1 = x2
+        // Re-evaluate function at new lower and upper bounds.
+        f0 = function(x0);
+        f2 = function(x2);
+
+        // Compute new false position point, and evaluate function.
+        x1 = x2 - ((f2*(x2-x0))/(f2-f0));
+        f1 = function(x1);
+        
+        // Set lower/upper bound for next iteration.
+        if(f0 * f1 > 0)
+        {
+            x0 = x1;
+        } 
+        else
+        {
+            x2 = x1;
         }
         
-        errorCurrent = f1;
-        iterCurrent++;
+        // Evaluate error, increment iteration.
+        err = f1;
+        iter++;
         
     }
     
-    // Error handling for if max number of iterations  
+    // Error handling for if max number of iterations.
     try{
-        if(iterCurrent >= iterMax){
+        if(iter >= iter_max){
             throw 10000;
         }
         
     }
     catch(int err10000){
-        std::cout << "Error: " << "Maximum iteration limit exceeded" << std::endl;
-        std::cout << "Disregard return value." << std::endl;
-        std::cout << "Possible sources of error: " << std::endl;
-        std::cout << "Root is not bracketed. Root must be bracketed for regula-falsi." << std::endl;
-        std::cout << "Not enough iterations were alloted." << std::endl;
+        std::cout << "(root.cpp, fzero_false_pos) Error: " << "Maximum iteration limit exceeded" << std::endl;
         return 0;
     }
     
-    std::cout << "iter: " << iterCurrent << std::endl;
+    std::cout << "iter: " << iter << std::endl;
     return x1;   
     
 }
